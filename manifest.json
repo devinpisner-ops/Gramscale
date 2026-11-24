@@ -1,0 +1,33 @@
+{
+  "name": "GramScale \u2014 Recipe to Grams",
+  "short_name": "GramScale",
+  "description": "Convert recipe ingredients from cups, tablespoons, and ounces into grams for accurate weighing.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FAFAF9",
+  "theme_color": "#D97706",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "share_target": {
+    "action": "./",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

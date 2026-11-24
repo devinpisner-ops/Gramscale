@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#D97706" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="icon-192.png" />
+  <title>GramScale — Recipe to Grams Converter</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: light;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #FAFAF9;
+      color: #1C1917;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+    .dark-kitchen {
+      background-color: #141210;
+      color: #F5F5F4;
+    }
+    .dark-kitchen .card-surface {
+      background-color: #1E1B18;
+      border-color: #2E2924;
+    }
+    .dark-kitchen .muted-surface {
+      background-color: #26221E;
+      border-color: #36302A;
+    }
+    .dark-kitchen .text-muted {
+      color: #A8A29E;
+    }
+    .dark-kitchen .input-surface {
+      background-color: #141210;
+      border-color: #36302A;
+      color: #F5F5F4;
+    }
+    .dark-kitchen .nav-surface {
+      background-color: rgba(20, 18, 16, 0.94);
+      border-color: #2E2924;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-24 transition-colors duration-200">
+  <!-- Top Header -->
+  <header class="sticky top-0 z-30 nav-surface bg-[#FAFAF9]/95 backdrop-blur border-b border-stone-200">
+    <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+          <i data-lucide="scale" class="w-5 h-5"></i>
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-base font-bold tracking-tight truncate">GramScale</h1>
+          <p class="text-[11px] text-stone-500 text-muted truncate">Recipe-to-weight converter</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button id="wakeLockBtn" type="button" title="Keep screen awake while weighing"
+          class="h-9 px-2.5 rounded-lg border border-stone-200 card-surface bg-white text-xs font-medium flex items-center gap-1.5 hover:bg-stone-100 transition">
+          <i data-lucide="sun" class="w-3.5 h-3.5 text-amber-600"></i>
+          <span class="hidden sm:inline" id="wakeLockLabel">Awake: Off</span>
+        </button>
+        <button id="themeToggleBtn" type="button" title="Toggle dark kitchen mode"
+          class="w-9 h-9 rounded-lg border border-stone-200 card-surface bg-white flex items-center justify-center hover:bg-stone-100 transition">
+          <i data-lucide="moon" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-2xl mx-auto px-4 pt-4 space-y-4">
+    <!-- VIEW 1: RECIPE CONVERTER -->
+    <section id="view-recipe" class="space-y-4">
+      <!-- Recipe Input Card -->
+      <div class="card-surface bg-white rounded-2xl border border-stone-200 p-4 shadow-sm space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <label for="recipeInput" class="text-sm font-semibold flex items-center gap-1.5">
+            <i data-lucide="clipboard-list" class="w-4 h-4 text-amber-600"></i>
+            Paste Recipe or Ingredients
+          </label>
+          <div class="flex items-center gap-1.5">
+            <button id="pasteClipboardBtn" type="button"
+              class="h-8 px-2.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold flex items-center gap-1 hover:bg-amber-100 transition">
+              <i data-lucide="clipboard-paste" class="w-3.5 h-3.5"></i>
+              Paste
+            </button>
+            <button id="clearInputBtn" type="button"
+              class="h-8 px-2.5 rounded-lg muted-surface bg-stone-100 text-stone-600 text-xs font-medium hover:bg-stone-200 transition">
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <textarea id="recipeInput" rows="5"
+          placeholder="Paste a recipe ingredient list here (e.g. 2 1/4 cups all-purpose flour, 1 cup packed brown sugar, 2 sticks butter)..."
+          class="input-surface w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition"></textarea>
+
+        <!-- Sample Pills & Convert Button -->
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+            <span class="text-[11px] font-medium text-stone-400 shrink-0">Try:</span>
+            <button type="button" data-sample="cookies"
+              class="sample-btn shrink-0 px-2.5 py-1 rounded-full text-xs font-medium bg-stone-100 muted-surface text-stone-700 hover:bg-amber-50 hover:text-amber-800 transition">
+              Choc Chip Cookies
+            </button>
+            <button type="button" data-sample="sourdough"
+              class="sample-btn shrink-0 px-2.5 py-1 rounded-full text-xs font-medium bg-stone-100 muted-surface text-stone-700 hover:bg-amber-50 hover:text-amber-800 transition">
+              Sourdough
+            </button>
+            <button type="button" data-sample="pancakes"
+              class="sample-btn shrink-0 px-2.5 py-1 rounded-full text-xs font-medium bg-stone-100 muted-surface text-stone-700 hover:bg-amber-50 hover:text-amber-800 transition">
+              Pancakes
+            </button>
+          </div>
+          <button id="convertRecipeBtn" type="button"
+            class="h-10 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold flex items-center gap-1.5 shadow-sm transition shrink-0">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            Convert to Grams
+          </button>
+        </div>
+      </div>
+
+      <!-- Controls Bar: Batch Scale & Display Options -->
+      <div class="card-surface bg-white rounded-2xl border border-stone-200 p-3.5 shadow-sm flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-xs font-semibold text-stone-500 text-muted mr-1">Scale:</span>
+          <button type="button" data-scale="0.5" class="scale-btn h-8 px-2.5 rounded-lg text-xs font-semibold border border-stone-200 muted-surface transition">0.5x</button>
+          <button type="button" data-scale="1" class="scale-btn h-8 px-2.5 rounded-lg text-xs font-semibold border transition">1x</button>
+          <button type="button" data-scale="1.5" class="scale-btn h-8 px-2.5 rounded-lg text-xs font-semibold border border-stone-200 muted-surface transition">1.5x</button>
+          <button type="button" data-scale="2" class="scale-btn h-8 px-2.5 rounded-lg text-xs font-semibold border border-stone-200 muted-surface transition">2x</button>
+          <input id="customScaleInput" type="number" step="0.25" min="0.1" max="20" value="1" aria-label="Custom scale multiplier"
+            class="input-surface w-16 h-8 px-2 rounded-lg border border-stone-200 text-xs font-semibold text-center tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/40" />
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="unitToggleBtn" type="button"
+            class="h-8 px-2.5 rounded-lg border border-stone-200 muted-surface text-xs font-semibold flex items-center gap-1 hover:bg-stone-100 transition">
+            <span id="unitToggleLabel">g only</span>
+          </button>
+          <button id="copyAllBtn" type="button"
+            class="h-8 px-2.5 rounded-lg border border-stone-200 muted-surface text-xs font-semibold flex items-center gap-1 hover:bg-stone-100 transition">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            Copy
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress & Summary Strip -->
+      <div id="progressCard" class="card-surface bg-white rounded-2xl border border-stone-200 px-4 py-3 shadow-sm space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-semibold" id="progressText">0 of 0 weighed</span>
+          <div class="flex items-center gap-3">
+            <span class="text-stone-500 text-muted tabular-nums" id="totalWeightText">Total: 0 g</span>
+            <button id="resetChecksBtn" type="button" class="text-amber-700 font-semibold hover:underline">Reset checks</button>
+          </div>
+        </div>
+        <div class="w-full h-2 rounded-full bg-stone-100 muted-surface overflow-hidden">
+          <div id="progressBar" class="h-full bg-emerald-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Converted Ingredients List -->
+      <div id="ingredientsList" class="space-y-2.5"></div>
+    </section>
+
+    <!-- VIEW 2: QUICK SINGLE CONVERTER -->
+    <section id="view-quick" class="hidden space-y-4">
+      <div class="card-surface bg-white rounded-2xl border border-stone-200 p-4 shadow-sm space-y-4">
+        <div>
+          <h2 class="text-base font-bold">Quick Ingredient Calculator</h2>
+          <p class="text-xs text-stone-500 text-muted mt-0.5">Convert a single volume or weight measurement to grams using standard baking densities.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="quickAmount" class="block text-xs font-semibold text-stone-600 text-muted mb-1">Amount (e.g. 1 1/2)</label>
+            <input id="quickAmount" type="text" value="1" inputmode="decimal"
+              class="input-surface w-full h-11 px-3 rounded-xl border border-stone-200 bg-stone-50 text-base font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/40" />
+          </div>
+          <div>
+            <label for="quickUnit" class="block text-xs font-semibold text-stone-600 text-muted mb-1">Unit</label>
+            <select id="quickUnit"
+              class="input-surface w-full h-11 px-3 rounded-xl border border-stone-200 bg-stone-50 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/40">
+              <option value="cup">Cup (US)</option>
+              <option value="tbsp">Tablespoon (tbsp)</option>
+              <option value="tsp">Teaspoon (tsp)</option>
+              <option value="stick">Stick (butter)</option>
+              <option value="oz">Ounce (oz weight)</option>
+              <option value="lb">Pound (lb)</option>
+              <option value="floz">Fluid Ounce (fl oz)</option>
+              <option value="ml">Milliliter (ml)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="quickSearch" class="block text-xs font-semibold text-stone-600 text-muted mb-1">Ingredient</label>
+          <input id="quickSearch" type="text" placeholder="Search 75+ ingredients (e.g. flour, honey, butter)..."
+            class="input-surface w-full h-10 px-3 rounded-xl border border-stone-200 bg-stone-50 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-amber-500/40" />
+          <select id="quickIngredient" size="6"
+            class="input-surface w-full rounded-xl border border-stone-200 bg-stone-50 p-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40"></select>
+        </div>
+
+        <!-- Big Result Box -->
+        <div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 flex items-center justify-between">
+          <div>
+            <div class="text-xs font-semibold uppercase tracking-wider text-amber-800">Scale Weight</div>
+            <div class="text-3xl font-extrabold text-amber-950 tabular-nums mt-0.5" id="quickResultGrams">120 g</div>
+            <div class="text-xs text-amber-800/80 mt-0.5 tabular-nums" id="quickResultSub">4.23 oz · 120 g per cup</div>
+          </div>
+          <button id="addToListBtn" type="button"
+            class="h-10 px-3.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Add to Recipe
+          </button>
+        </div>
+      </div>
+
+      <!-- Density Reference Table -->
+      <div class="card-surface bg-white rounded-2xl border border-stone-200 p-4 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold">Common Pantry Reference (1 US Cup)</h3>
+          <span class="text-[11px] text-stone-400">King Arthur / USDA</span>
+        </div>
+        <div id="referenceGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: PHONE SETUP & SHARE GUIDE -->
+    <section id="view-guide" class="hidden space-y-4">
+      <div class="card-surface bg-white rounded-2xl border border-stone-200 p-4 shadow-sm space-y-4">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+            <i data-lucide="smartphone" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold">Save &amp; Run on Your Phone</h2>
+            <p class="text-xs text-stone-500 text-muted mt-0.5">This app is 100% self-contained. Your recipes and custom weights stay on your device.</p>
+          </div>
+        </div>
+
+        <div class="space-y-3 text-sm">
+          <div class="muted-surface bg-stone-50 rounded-xl p-3.5 border border-stone-200 space-y-1.5">
+            <div class="font-bold text-xs uppercase tracking-wide text-amber-700">Option A · Offline File (Zero Hosting)</div>
+            <p class="text-xs leading-relaxed text-stone-600 text-muted">
+              1. Save this <code class="px-1 py-0.5 rounded bg-stone-200/70 text-stone-900">recipe-gram-converter.html</code> file to your phone (iPhone <strong>Files</strong> app or Android <strong>Downloads</strong>).<br/>
+              2. Tap it anytime to open in Safari or Chrome — it works offline with no account or internet required.<br/>
+              3. Copy any recipe's ingredients from a website or notes app, tap <strong>Paste</strong>, and weigh!
+            </p>
+          </div>
+
+          <div class="muted-surface bg-stone-50 rounded-xl p-3.5 border border-stone-200 space-y-1.5">
+            <div class="font-bold text-xs uppercase tracking-wide text-amber-700">Option B · Add to Home Screen + Share Sheet</div>
+            <p class="text-xs leading-relaxed text-stone-600 text-muted">
+              To appear in your phone's <strong>Share Sheet</strong> or run as a full-screen Home Screen app:<br/>
+              • <strong>Host free in 10 seconds:</strong> Drop this HTML file onto <span class="font-semibold">Netlify Drop</span> or <span class="font-semibold">GitHub Pages</span>, then open the URL on your phone and tap <strong>Add to Home Screen</strong>.<br/>
+              • <strong>Share via URL parameter:</strong> GramScale automatically reads <code class="px-1 py-0.5 rounded bg-stone-200/70 text-stone-900">?text=...</code> on launch. On iPhone, create a 2-step <strong>Apple Shortcut</strong> ("Receive Text from Share Sheet" → "Open URL: <span class="italic">your-app-url</span>?text=[Shortcut Input]") so sharing any recipe text opens GramScale with everything pre-converted!
+            </p>
+          </div>
+        </div>
+
+        <!-- Test Share URL Feature -->
+        <div class="pt-2 border-t border-stone-200 space-y-2">
+          <div class="text-xs font-semibold">Test Auto-Import Link</div>
+          <p class="text-xs text-stone-500 text-muted">Click below to simulate launching GramScale with a shared recipe in the URL:</p>
+          <button id="testShareParamBtn" type="button"
+            class="h-9 px-3.5 rounded-xl bg-stone-900 text-white text-xs font-semibold hover:bg-stone-800 transition flex items-center gap-1.5">
+            <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+            Simulate Shared Recipe Launch
+          </button>
+        </div>
+      </div>
+
+      <!-- Custom Ingredient Density Manager -->
+      <div class="card-surface bg-white rounded-2xl border border-stone-200 p-4 shadow-sm space-y-3">
+        <div>
+          <h3 class="text-sm font-bold">Saved Custom Ingredients</h3>
+          <p class="text-xs text-stone-500 text-muted">When you customize an ingredient's grams-per-cup in a recipe, it's saved here for future recipes.</p>
+        </div>
+        <div id="customIngredientsList" class="text-xs text-stone-500 text-muted">No custom ingredients saved yet.</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Edit Density / Custom Grams Modal -->
+  <div id="editModal" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center bg-black/50 backdrop-blur-xs p-0 sm:p-4">
+    <div class="card-surface bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl border border-stone-200 p-5 space-y-4 shadow-xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold">Adjust Ingredient Weight</h3>
+        <button id="closeModalBtn" type="button" class="w-8 h-8 rounded-lg muted-surface bg-stone-100 flex items-center justify-center">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="text-xs text-stone-500 text-muted" id="modalOriginalLine"></div>
+      <div class="space-y-3">
+        <div>
+          <label for="modalDbSelect" class="block text-xs font-semibold mb-1">Match to Pantry Ingredient</label>
+          <select id="modalDbSelect" class="input-surface w-full h-10 px-3 rounded-xl border border-stone-200 bg-stone-50 text-sm"></select>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-stone-400">
+          <div class="flex-1 h-px bg-stone-200"></div>
+          <span>OR SET EXACT GRAMS</span>
+          <div class="flex-1 h-px bg-stone-200"></div>
+        </div>
+        <div>
+          <label for="modalCustomGrams" class="block text-xs font-semibold mb-1">Exact Grams (at 1x scale)</label>
+          <input id="modalCustomGrams" type="number" step="0.5" min="0" placeholder="e.g. 120"
+            class="input-surface w-full h-10 px-3 rounded-xl border border-stone-200 bg-stone-50 text-sm font-semibold tabular-nums" />
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-1">
+        <button id="modalCancelBtn" type="button" class="h-10 px-4 rounded-xl muted-surface bg-stone-100 text-xs font-semibold">Cancel</button>
+        <button id="modalSaveBtn" type="button" class="h-10 px-4 rounded-xl bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700">Apply Weight</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-stone-900 text-white text-xs font-semibold shadow-lg opacity-0 pointer-events-none transition-opacity duration-200"></div>
+
+  <!-- Bottom Tab Navigation -->
+  <nav class="fixed bottom-0 inset-x-0 z-30 nav-surface bg-[#FAFAF9]/95 backdrop-blur border-t border-stone-200">
+    <div class="max-w-2xl mx-auto grid grid-cols-3 h-16">
+      <button type="button" data-tab="recipe" class="tab-btn flex flex-col items-center justify-center gap-1 text-amber-600 font-semibold">
+        <i data-lucide="list-checks" class="w-5 h-5"></i>
+        <span class="text-[11px]">Recipe</span>
+      </button>
+      <button type="button" data-tab="quick" class="tab-btn flex flex-col items-center justify-center gap-1 text-stone-500 font-medium">
+        <i data-lucide="calculator" class="w-5 h-5"></i>
+        <span class="text-[11px]">Quick Convert</span>
+      </button>
+      <button type="button" data-tab="guide" class="tab-btn flex flex-col items-center justify-center gap-1 text-stone-500 font-medium">
+        <i data-lucide="smartphone" class="w-5 h-5"></i>
+        <span class="text-[11px]">Phone Setup</span>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    // =========================================================================
+    // 1. INGREDIENT DENSITY DATABASE (Grams per 1 US Cup = 236.588 ml)
+    // Grounded in King Arthur Baking & USDA standard baking weights
+    // =========================================================================
+    const INGREDIENTS_DB = [
+      // Flours & Starches
+      { id: 'ap_flour', name: 'All-Purpose Flour', category: 'Flours & Starches', gPerCup: 120, aliases: ['all-purpose flour', 'all purpose flour', 'ap flour', 'plain flour', 'flour', 'white flour', 'unbleached flour'] },
+      { id: 'bread_flour', name: 'Bread Flour', category: 'Flours & Starches', gPerCup: 127, aliases: ['bread flour', 'strong flour', 'high gluten flour'] },
+      { id: 'cake_flour', name: 'Cake Flour', category: 'Flours & Starches', gPerCup: 114, aliases: ['cake flour', 'pastry flour'] },
+      { id: 'whole_wheat_flour', name: 'Whole Wheat Flour', category: 'Flours & Starches', gPerCup: 120, aliases: ['whole wheat flour', 'wholemeal flour', 'whole-wheat flour'] },
+      { id: 'almond_flour', name: 'Almond Flour', category: 'Flours & Starches', gPerCup: 96, aliases: ['almond flour', 'almond meal'] },
+      { id: 'cornstarch', name: 'Cornstarch', category: 'Flours & Starches', gPerCup: 128, aliases: ['cornstarch', 'corn starch', 'cornflour'] },
+      { id: 'cornmeal', name: 'Cornmeal', category: 'Flours & Starches', gPerCup: 138, aliases: ['cornmeal', 'polenta'] },
+      { id: 'rye_flour', name: 'Rye Flour', category: 'Flours & Starches', gPerCup: 106, aliases: ['rye flour'] },
+      { id: 'cocoa_powder', name: 'Cocoa Powder (Unsweetened)', category: 'Flours & Starches', gPerCup: 85, aliases: ['cocoa powder', 'unsweetened cocoa', 'dutch process cocoa', 'cocoa'] },
+
+      // Sugars & Sweeteners
+      { id: 'granulated_sugar', name: 'Granulated White Sugar', category: 'Sugars & Sweeteners', gPerCup: 198, aliases: ['granulated sugar', 'white sugar', 'caster sugar', 'superfine sugar', 'sugar'] },
+      { id: 'brown_sugar', name: 'Brown Sugar (Packed)', category: 'Sugars & Sweeteners', gPerCup: 213, aliases: ['brown sugar', 'light brown sugar', 'dark brown sugar', 'packed brown sugar'] },
+      { id: 'powdered_sugar', name: 'Powdered / Confectioners Sugar', category: 'Sugars & Sweeteners', gPerCup: 113, aliases: ['powdered sugar', 'confectioners sugar', "confectioners' sugar", 'icing sugar'] },
+      { id: 'honey', name: 'Honey', category: 'Sugars & Sweeteners', gPerCup: 340, aliases: ['honey'] },
+      { id: 'maple_syrup', name: 'Maple Syrup', category: 'Sugars & Sweeteners', gPerCup: 312, aliases: ['maple syrup', 'pure maple syrup'] },
+      { id: 'molasses', name: 'Molasses', category: 'Sugars & Sweeteners', gPerCup: 340, aliases: ['molasses'] },
+      { id: 'corn_syrup', name: 'Corn Syrup', category: 'Sugars & Sweeteners', gPerCup: 312, aliases: ['corn syrup', 'light corn syrup', 'dark corn syrup'] },
+
+      // Fats & Dairy
+      { id: 'butter', name: 'Butter', category: 'Fats & Dairy', gPerCup: 226, gPerStick: 113, aliases: ['unsalted butter', 'salted butter', 'butter', 'melted butter', 'softened butter', 'cold butter'] },
+      { id: 'vegetable_oil', name: 'Vegetable / Neutral Oil', category: 'Fats & Dairy', gPerCup: 198, aliases: ['vegetable oil', 'canola oil', 'neutral oil', 'oil', 'sunflower oil'] },
+      { id: 'olive_oil', name: 'Olive Oil', category: 'Fats & Dairy', gPerCup: 200, aliases: ['olive oil', 'extra virgin olive oil', 'evoo'] },
+      { id: 'coconut_oil', name: 'Coconut Oil', category: 'Fats & Dairy', gPerCup: 225, aliases: ['coconut oil', 'virgin coconut oil'] },
+      { id: 'milk', name: 'Milk (Whole / 2%)', category: 'Fats & Dairy', gPerCup: 227, aliases: ['whole milk', 'milk', 'skim milk', '2% milk', 'almond milk', 'oat milk'] },
+      { id: 'buttermilk', name: 'Buttermilk', category: 'Fats & Dairy', gPerCup: 227, aliases: ['buttermilk'] },
+      { id: 'heavy_cream', name: 'Heavy Cream', category: 'Fats & Dairy', gPerCup: 227, aliases: ['heavy cream', 'heavy whipping cream', 'whipping cream', 'double cream'] },
+      { id: 'sour_cream', name: 'Sour Cream / Greek Yogurt', category: 'Fats & Dairy', gPerCup: 227, aliases: ['sour cream', 'greek yogurt', 'plain yogurt', 'yogurt'] },
+      { id: 'cream_cheese', name: 'Cream Cheese', category: 'Fats & Dairy', gPerCup: 227, aliases: ['cream cheese'] },
+      { id: 'shredded_cheese', name: 'Shredded Cheese (Cheddar/Mozz)', category: 'Fats & Dairy', gPerCup: 113, aliases: ['shredded cheese', 'cheddar cheese', 'mozzarella cheese', 'grated cheese', 'parmesan'] },
+
+      // Liquids
+      { id: 'water', name: 'Water', category: 'Liquids', gPerCup: 227, aliases: ['water', 'warm water', 'cold water', 'boiling water', 'ice water'] },
+      { id: 'coffee', name: 'Brewed Coffee / Espresso', category: 'Liquids', gPerCup: 227, aliases: ['coffee', 'brewed coffee', 'espresso'] },
+      { id: 'vanilla_extract', name: 'Vanilla Extract', category: 'Liquids', gPerCup: 224, gPerTsp: 4.5, aliases: ['vanilla extract', 'pure vanilla extract', 'vanilla'] },
+
+      // Chocolate, Nuts & Mix-ins
+      { id: 'chocolate_chips', name: 'Chocolate Chips', category: 'Chocolate & Mix-ins', gPerCup: 170, aliases: ['chocolate chips', 'semisweet chocolate chips', 'semi-sweet chocolate chips', 'dark chocolate chips', 'milk chocolate chips', 'white chocolate chips'] },
+      { id: 'chopped_chocolate', name: 'Chopped Chocolate', category: 'Chocolate & Mix-ins', gPerCup: 170, aliases: ['chopped chocolate', 'bittersweet chocolate', 'baking chocolate'] },
+      { id: 'walnuts', name: 'Chopped Walnuts / Pecans', category: 'Chocolate & Mix-ins', gPerCup: 113, aliases: ['walnuts', 'chopped walnuts', 'pecans', 'chopped pecans'] },
+      { id: 'almonds', name: 'Sliced / Slivered Almonds', category: 'Chocolate & Mix-ins', gPerCup: 86, aliases: ['sliced almonds', 'slivered almonds', 'almonds'] },
+      { id: 'peanut_butter', name: 'Peanut Butter / Nut Butter', category: 'Chocolate & Mix-ins', gPerCup: 270, aliases: ['peanut butter', 'creamy peanut butter', 'almond butter', 'tahini'] },
+      { id: 'raisins', name: 'Raisins / Dried Cranberries', category: 'Chocolate & Mix-ins', gPerCup: 149, aliases: ['raisins', 'dried cranberries', 'craisins', 'dried fruit'] },
+      { id: 'shredded_coconut', name: 'Shredded Coconut', category: 'Chocolate & Mix-ins', gPerCup: 85, aliases: ['shredded coconut', 'sweetened coconut', 'flaked coconut'] },
+
+      // Grains & Oats
+      { id: 'rolled_oats', name: 'Rolled Oats (Old-Fashioned)', category: 'Grains & Oats', gPerCup: 89, aliases: ['rolled oats', 'old-fashioned oats', 'old fashioned oats', 'oats', 'quick oats'] },
+      { id: 'white_rice', name: 'White Rice (Uncooked)', category: 'Grains & Oats', gPerCup: 198, aliases: ['white rice', 'jasmine rice', 'basmati rice', 'rice'] },
+      { id: 'breadcrumbs', name: 'Panko Breadcrumbs', category: 'Grains & Oats', gPerCup: 50, aliases: ['panko', 'panko breadcrumbs', 'breadcrumbs'] },
+
+      // Leaveners, Salt & Spices (with accurate tsp/tbsp overrides)
+      { id: 'table_salt', name: 'Table Salt', category: 'Leaveners & Spices', gPerCup: 288, gPerTbsp: 18, gPerTsp: 6, aliases: ['table salt', 'fine salt', 'salt'] },
+      { id: 'kosher_salt', name: 'Kosher Salt (Diamond Crystal)', category: 'Leaveners & Spices', gPerCup: 136, gPerTbsp: 8.5, gPerTsp: 2.8, aliases: ['kosher salt'] },
+      { id: 'baking_powder', name: 'Baking Powder', category: 'Leaveners & Spices', gPerCup: 192, gPerTbsp: 12, gPerTsp: 4, aliases: ['baking powder'] },
+      { id: 'baking_soda', name: 'Baking Soda', category: 'Leaveners & Spices', gPerCup: 240, gPerTbsp: 15, gPerTsp: 5, aliases: ['baking soda', 'bicarbonate of soda'] },
+      { id: 'yeast', name: 'Instant / Active Dry Yeast', category: 'Leaveners & Spices', gPerCup: 144, gPerTbsp: 9, gPerTsp: 3, aliases: ['instant yeast', 'active dry yeast', 'dry yeast', 'yeast'] },
+      { id: 'cinnamon', name: 'Ground Cinnamon / Spices', category: 'Leaveners & Spices', gPerCup: 125, gPerTbsp: 7.8, gPerTsp: 2.6, aliases: ['cinnamon', 'ground cinnamon', 'nutmeg', 'ginger', 'garlic powder', 'onion powder', 'paprika', 'cumin'] }
+    ];
+
+    // Unit conversion multipliers relative to 1 US Cup (1 cup = 16 tbsp = 48 tsp = 8 fl oz = 236.588 ml)
+    const UNIT_ALIASES = {
+      cup: ['cup', 'cups', 'c', 'c.'],
+      tbsp: ['tbsp', 'tbsps', 'tablespoon', 'tablespoons', 'tbs', 'T'],
+      tsp: ['tsp', 'tsps', 'teaspoon', 'teaspoons', 't'],
+      stick: ['stick', 'sticks'],
+      oz: ['oz', 'ounce', 'ounces'],
+      lb: ['lb', 'lbs', 'pound', 'pounds'],
+      floz: ['fl oz', 'fl. oz', 'fluid ounce', 'fluid ounces'],
+      ml: ['ml', 'milliliter', 'milliliters', 'millilitre', 'millilitres'],
+      l: ['l', 'liter', 'liters', 'litre', 'litres'],
+      g: ['g', 'gram', 'grams', 'gr'],
+      kg: ['kg', 'kilogram', 'kilograms']
+    };
+
+    const UNICODE_FRACTIONS = {
+      '½': 0.5, '⅓': 1/3, '⅔': 2/3, '¼': 0.25, '¾': 0.75,
+      '⅛': 0.125, '⅜': 0.375, '⅝': 0.625, '⅞': 0.875, '⅕': 0.2, '⅖': 0.4, '⅗': 0.6, '⅘': 0.8
+    };
+
+    const SAMPLE_RECIPES = {
+      cookies: `Classic Chocolate Chip Cookies
+1 cup (2 sticks) unsalted butter, softened
+1 cup packed brown sugar
+1/2 cup granulated sugar
+2 large eggs
+2 tsp vanilla extract
+2 1/4 cups all-purpose flour
+1 tsp baking soda
+1 tsp salt
+2 cups semi-sweet chocolate chips`,
+      sourdough: `Country Sourdough Boule
+3 3/4 cups bread flour
+1/2 cup whole wheat flour
+1 1/2 cups water
+1/3 cup active sourdough starter (100g)
+2 tsp kosher salt`,
+      pancakes: `Fluffy Weekend Pancakes
+1 1/2 cups all-purpose flour
+3 1/2 tsp baking powder
+1 tbsp granulated sugar
+1/2 tsp salt
+1 1/4 cups milk
+1 large egg
+3 tbsp melted butter`
+    };
+
+    // =========================================================================
+    // 2. APPLICATION STATE
+    // =========================================================================
+    const state = {
+      activeTab: 'recipe',
+      scale: 1,
+      showOz: false,
+      darkMode: false,
+      wakeLock: null,
+      items: [],
+      customOverrides: {}, // key: normalized line -> { dbId, customGrams }
+      editingItemId: null
+    };
+
+    try {
+      const savedOverrides = localStorage.getItem('gramscale_overrides');
+      if (savedOverrides) state.customOverrides = JSON.parse(savedOverrides);
+      const savedDark = localStorage.getItem('gramscale_dark');
+      if (savedDark === 'true') state.darkMode = true;
+    } catch (e) {}
+
+    // =========================================================================
+    // 3. PARSING & CONVERSION ENGINE
+    // =========================================================================
+    function parseFractionString(str) {
+      if (!str) return null;
+      let s = str.trim();
+      for (const [uc, val] of Object.entries(UNICODE_FRACTIONS)) {
+        if (s.includes(uc)) {
+          s = s.replace(uc, ' ' + val.toFixed(4));
+        }
+      }
+      // Handle range like "1-2" or "1 to 2" -> take midpoint
+      const rangeMatch = s.match(/^(\d+(?:\.\d+)?)\s*(?:-|to)\s*(\d+(?:\.\d+)?)$/i);
+      if (rangeMatch) {
+        return (parseFloat(rangeMatch[1]) + parseFloat(rangeMatch[2])) / 2;
+      }
+      const parts = s.split(/\s+/).filter(Boolean);
+      let total = 0;
+      let parsedAny = false;
+      for (const part of parts) {
+        if (part.includes('/')) {
+          const [num, den] = part.split('/').map(Number);
+          if (!isNaN(num) && !isNaN(den) && den !== 0) {
+            total += num / den;
+            parsedAny = true;
+          }
+        } else {
+          const val = parseFloat(part);
+          if (!isNaN(val)) {
+            total += val;
+            parsedAny = true;
+          }
+        }
+      }
+      return parsedAny ? total : null;
+    }
+
+    function normalizeUnit(rawUnit) {
+      if (!rawUnit) return null;
+      const clean = rawUnit.trim().replace(/\.$/, '');
+      // Case-sensitive check for 'T' (tbsp) vs 't' (tsp)
+      if (clean === 'T') return 'tbsp';
+      if (clean === 't') return 'tsp';
+      const lower = clean.toLowerCase();
+      for (const [canonical, list] of Object.entries(UNIT_ALIASES)) {
+        if (list.some(u => u.toLowerCase() === lower)) return canonical;
+      }
+      return null;
+    }
+
+    function matchIngredient(text) {
+      const lower = text.toLowerCase();
+      let bestMatch = null;
+      let bestLen = 0;
+      for (const ing of INGREDIENTS_DB) {
+        for (const alias of ing.aliases) {
+          // Word-boundary-ish match so "oil" doesn't falsely match "boiling"
+          const regex = new RegExp(`\\b${alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+          if (regex.test(lower) && alias.length > bestLen) {
+            bestMatch = ing;
+            bestLen = alias.length;
+          }
+        }
+      }
+      return bestMatch;
+    }
+
+    function computeGrams(amount, unit, ing) {
+      if (amount == null || isNaN(amount)) return null;
+      if (unit === 'g') return amount;
+      if (unit === 'kg') return amount * 1000;
+      if (unit === 'oz') return amount * 28.3495;
+      if (unit === 'lb') return amount * 453.592;
+      if (!ing) {
+        // Fallback for pure water-like liquids if unit is ml/l/floz
+        if (unit === 'ml') return amount;
+        if (unit === 'l') return amount * 1000;
+        if (unit === 'floz') return amount * 29.5735;
+        return null;
+      }
+
+      if (unit === 'stick') {
+        return amount * (ing.gPerStick || ing.gPerCup / 2);
+      }
+      if (unit === 'cup') return amount * ing.gPerCup;
+      if (unit === 'tbsp') return amount * (ing.gPerTbsp || ing.gPerCup / 16);
+      if (unit === 'tsp') return amount * (ing.gPerTsp || ing.gPerCup / 48);
+      if (unit === 'floz') return amount * (ing.gPerCup / 8);
+      if (unit === 'ml') return amount * (ing.gPerCup / 236.588);
+      if (unit === 'l') return amount * 1000 * (ing.gPerCup / 236.588);
+      return null;
+    }
+
+    function parseRecipeText(rawText) {
+      const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const results = [];
+
+      // Build unit regex dynamically
+      const allUnits = Object.values(UNIT_ALIASES).flat().sort((a, b) => b.length - a.length)
+        .map(u => u.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+      const qtyPattern = String.raw`((?:\d+\s+)?\d+\/\d+|\d+(?:\.\d+)?(?:\s*(?:-|to)\s*\d+(?:\.\d+)?)?|[½⅓⅔¼¾⅛⅜⅝⅞]|\d+\s*[½⅓⅔¼¾⅛⅜⅝⅞])`;
+      const lineRegex = new RegExp(`^[•\\-*\\d.)\\s]*${qtyPattern}\\s*(${allUnits})\\b\\.?\\s*(.*)$`, 'i');
+      const countRegex = new RegExp(`^[•\\-*\\s]*${qtyPattern}\\s+(.*)$`, 'i');
+
+      lines.forEach((line, idx) => {
+        // Detect section headers (no leading number, ends with ':' or all caps/short title)
+        if (/^[A-Za-z\s]{2,40}:$/.test(line) || (idx === 0 && !/\d|[½⅓⅔¼¾⅛⅜⅝⅞]/.test(line) && line.length < 50)) {
+          results.push({ id: `hdr_${idx}`, isHeader: true, raw: line.replace(/:$/, '') });
+          return;
+        }
+
+        // Check if parenthetical already has grams, e.g., "(100g)"
+        const parenGramsMatch = line.match(/\((\d+(?:\.\d+)?)\s*g\)/i);
+        // Strip parentheticals for cleaner unit matching unless it has sticks
+        const cleanedForMatch = line.replace(/\(([^)]*)\)/g, (m, inner) => /\bstick/i.test(inner) ? ' ' : ' ');
+
+        let m = cleanedForMatch.match(lineRegex);
+        let amount = null, unit = null, rest = line;
+
+        if (m) {
+          amount = parseFractionString(m[1]);
+          unit = normalizeUnit(m[2]);
+          rest = m[3] || line;
+        } else {
+          const cm = cleanedForMatch.match(countRegex);
+          if (cm) {
+            amount = parseFractionString(cm[1]);
+            rest = cm[2] || line;
+          }
+        }
+
+        const matchedIng = matchIngredient(line);
+        const overrideKey = line.toLowerCase().trim();
+        const override = state.customOverrides[overrideKey];
+
+        let baseGrams = null;
+        let activeIng = matchedIng;
+
+        if (override && override.customGrams != null) {
+          baseGrams = override.customGrams;
+          activeIng = override.dbId ? INGREDIENTS_DB.find(i => i.id === override.dbId) : matchedIng;
+        } else if (override && override.dbId) {
+          activeIng = INGREDIENTS_DB.find(i => i.id === override.dbId) || matchedIng;
+          baseGrams = computeGrams(amount, unit, activeIng);
+        } else if (unit) {
+          baseGrams = computeGrams(amount, unit, matchedIng);
+        } else if (parenGramsMatch) {
+          baseGrams = parseFloat(parenGramsMatch[1]);
+        }
+
+        results.push({
+          id: `item_${idx}_${Date.now()}`,
+          isHeader: false,
+          raw: line,
+          amount,
+          unit,
+          rest,
+          matchedIng: activeIng,
+          baseGrams,
+          checked: false
+        });
+      });
+
+      return results;
+    }
+
+    // =========================================================================
+    // 4. UI RENDERING
+    // =========================================================================
+    function formatGrams(g) {
+      if (g == null || isNaN(g)) return '—';
+      if (g >= 10) return `${Math.round(g)} g`;
+      return `${Math.round(g * 10) / 10} g`;
+    }
+
+    function formatOz(g) {
+      if (g == null || isNaN(g)) return '';
+      return `${(g / 28.3495).toFixed(2)} oz`;
+    }
+
+    function renderRecipeList() {
+      const container = document.getElementById('ingredientsList');
+      container.innerHTML = '';
+
+      const ingredientsOnly = state.items.filter(i => !i.isHeader);
+      const checkedCount = ingredientsOnly.filter(i => i.checked).length;
+      const totalGrams = ingredientsOnly.reduce((sum, i) => sum + (i.baseGrams != null ? i.baseGrams * state.scale : 0), 0);
+
+      document.getElementById('progressText').textContent = `${checkedCount} of ${ingredientsOnly.length} weighed`;
+      document.getElementById('totalWeightText').textContent = `Total: ${formatGrams(totalGrams)}`;
+      const pct = ingredientsOnly.length > 0 ? Math.round((checkedCount / ingredientsOnly.length) * 100) : 0;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+
+      if (state.items.length === 0) {
+        container.innerHTML = `
+          <div class="card-surface bg-white rounded-2xl border border-dashed border-stone-300 p-8 text-center text-sm text-stone-500 text-muted">
+            Paste a recipe above or tap a sample to convert all ingredients to grams.
+          </div>`;
+        return;
+      }
+
+      state.items.forEach(item => {
+        if (item.isHeader) {
+          const hdr = document.createElement('div');
+          hdr.className = 'pt-2 pb-1 px-1 text-xs font-bold uppercase tracking-wider text-amber-700';
+          hdr.textContent = item.raw;
+          container.appendChild(hdr);
+          return;
+        }
+
+        const scaledGrams = item.baseGrams != null ? item.baseGrams * state.scale : null;
+        const card = document.createElement('div');
+        card.className = `card-surface bg-white rounded-2xl border p-3.5 shadow-xs flex items-center justify-between gap-3 transition cursor-pointer select-none ${
+          item.checked ? 'border-emerald-300 opacity-60' : 'border-stone-200 hover:border-amber-300'
+        }`;
+
+        const badgeText = item.matchedIng
+          ? `${item.matchedIng.name} · ${item.matchedIng.gPerCup}g/cup`
+          : (scaledGrams != null ? 'Direct weight' : 'Tap to set grams');
+
+        card.innerHTML = `
+          <div class="flex items-start gap-3 min-w-0 flex-1">
+            <div class="w-6 h-6 mt-0.5 rounded-full border-2 flex items-center justify-center shrink-0 transition ${
+              item.checked ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-stone-300'
+            }">
+              ${item.checked ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>' : ''}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="text-sm font-medium leading-snug ${item.checked ? 'line-through' : ''}">${escapeHtml(item.raw)}</div>
+              <div class="mt-1 flex items-center gap-2 flex-wrap">
+                <button type="button" data-edit-id="${item.id}"
+                  class="edit-ing-btn inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium ${
+                    item.matchedIng || scaledGrams != null
+                      ? 'bg-stone-100 muted-surface text-stone-600 text-muted hover:bg-amber-50 hover:text-amber-800'
+                      : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                  }">
+                  <span>${escapeHtml(badgeText)}</span>
+                  <i data-lucide="pencil" class="w-2.5 h-2.5"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-lg font-extrabold tabular-nums ${scaledGrams != null ? 'text-amber-700' : 'text-stone-400'}">
+              ${formatGrams(scaledGrams)}
+            </div>
+            ${state.showOz && scaledGrams != null ? `<div class="text-[11px] text-stone-400 tabular-nums">${formatOz(scaledGrams)}</div>` : ''}
+          </div>
+        `;
+
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.edit-ing-btn')) {
+            e.stopPropagation();
+            openEditModal(item.id);
+            return;
+          }
+          item.checked = !item.checked;
+          renderRecipeList();
+        });
+
+        container.appendChild(card);
+      });
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function updateScaleButtons() {
+      document.querySelectorAll('.scale-btn').forEach(btn => {
+        const val = parseFloat(btn.dataset.scale);
+        const active = Math.abs(val - state.scale) < 0.001;
+        btn.className = `scale-btn h-8 px-2.5 rounded-lg text-xs font-semibold border transition ${
+          active ? 'bg-amber-600 text-white border-amber-600' : 'border-stone-200 muted-surface hover:bg-stone-100'
+        }`;
+      });
+    }
+
+    // =========================================================================
+    // 5. QUICK CONVERTER LOGIC
+    // =========================================================================
+    function populateQuickIngredients(filter = '') {
+      const sel = document.getElementById('quickIngredient');
+      const prev = sel.value || 'ap_flour';
+      sel.innerHTML = '';
+      const q = filter.trim().toLowerCase();
+      const filtered = INGREDIENTS_DB.filter(i =>
+        !q || i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q)
+      );
+      filtered.forEach(ing => {
+        const opt = document.createElement('option');
+        opt.value = ing.id;
+        opt.textContent = `${ing.name} (${ing.gPerCup} g/cup)`;
+        sel.appendChild(opt);
+      });
+      if (filtered.some(i => i.id === prev)) sel.value = prev;
+      else if (filtered.length > 0) sel.selectedIndex = 0;
+      updateQuickResult();
+    }
+
+    function updateQuickResult() {
+      const amt = parseFractionString(document.getElementById('quickAmount').value) ?? 0;
+      const unit = document.getElementById('quickUnit').value;
+      const ingId = document.getElementById('quickIngredient').value;
+      const ing = INGREDIENTS_DB.find(i => i.id === ingId) || INGREDIENTS_DB[0];
+      const grams = computeGrams(amt, unit, ing);
+      document.getElementById('quickResultGrams').textContent = formatGrams(grams);
+      document.getElementById('quickResultSub').textContent = `${formatOz(grams)} · ${ing.gPerCup} g per cup`;
+    }
+
+    function renderReferenceGrid() {
+      const grid = document.getElementById('referenceGrid');
+      const featured = ['ap_flour', 'bread_flour', 'granulated_sugar', 'brown_sugar', 'powdered_sugar', 'butter', 'honey', 'chocolate_chips', 'rolled_oats'];
+      grid.innerHTML = featured.map(id => {
+        const ing = INGREDIENTS_DB.find(i => i.id === id);
+        return `
+          <div class="muted-surface bg-stone-50 rounded-xl p-2.5 border border-stone-200">
+            <div class="font-semibold truncate">${escapeHtml(ing.name)}</div>
+            <div class="text-amber-700 font-bold tabular-nums mt-0.5">${ing.gPerCup} g</div>
+          </div>`;
+      }).join('');
+    }
+
+    // =========================================================================
+    // 6. EDIT MODAL & CUSTOM OVERRIDES
+    // =========================================================================
+    function openEditModal(itemId) {
+      const item = state.items.find(i => i.id === itemId);
+      if (!item) return;
+      state.editingItemId = itemId;
+      document.getElementById('modalOriginalLine').textContent = item.raw;
+
+      const sel = document.getElementById('modalDbSelect');
+      sel.innerHTML = `<option value="">-- Select Pantry Ingredient --</option>` +
+        INGREDIENTS_DB.map(i => `<option value="${i.id}">${escapeHtml(i.name)} (${i.gPerCup}g/cup)</option>`).join('');
+      sel.value = item.matchedIng ? item.matchedIng.id : '';
+
+      document.getElementById('modalCustomGrams').value = item.baseGrams != null ? Math.round(item.baseGrams * 10) / 10 : '';
+      const modal = document.getElementById('editModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeEditModal() {
+      const modal = document.getElementById('editModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      state.editingItemId = null;
+    }
+
+    function saveEditModal() {
+      const item = state.items.find(i => i.id === state.editingItemId);
+      if (!item) return closeEditModal();
+
+      const dbId = document.getElementById('modalDbSelect').value;
+      const customVal = parseFloat(document.getElementById('modalCustomGrams').value);
+      const key = item.raw.toLowerCase().trim();
+
+      if (!isNaN(customVal) && customVal >= 0 && document.getElementById('modalCustomGrams').value !== '') {
+        item.baseGrams = customVal;
+        if (dbId) item.matchedIng = INGREDIENTS_DB.find(i => i.id === dbId);
+        state.customOverrides[key] = { dbId: dbId || null, customGrams: customVal };
+      } else if (dbId) {
+        const ing = INGREDIENTS_DB.find(i => i.id === dbId);
+        item.matchedIng = ing;
+        item.baseGrams = computeGrams(item.amount || 1, item.unit || 'cup', ing);
+        state.customOverrides[key] = { dbId, customGrams: null };
+      }
+
+      try {
+        localStorage.setItem('gramscale_overrides', JSON.stringify(state.customOverrides));
+      } catch (e) {}
+
+      renderCustomOverridesList();
+      renderRecipeList();
+      closeEditModal();
+      showToast('Updated ingredient weight');
+    }
+
+    function renderCustomOverridesList() {
+      const el = document.getElementById('customIngredientsList');
+      const entries = Object.entries(state.customOverrides);
+      if (entries.length === 0) {
+        el.textContent = 'No custom ingredients saved yet.';
+        return;
+      }
+      el.innerHTML = `<div class="space-y-1.5">` + entries.map(([key, val]) => `
+        <div class="flex items-center justify-between muted-surface bg-stone-50 px-3 py-2 rounded-xl border border-stone-200">
+          <span class="truncate pr-2 font-medium">${escapeHtml(key)}</span>
+          <span class="font-bold text-amber-700 shrink-0 tabular-nums">${val.customGrams != null ? val.customGrams + ' g' : val.dbId}</span>
+        </div>`).join('') + `</div>`;
+    }
+
+    // =========================================================================
+    // 7. HELPERS & EVENT LISTENERS
+    // =========================================================================
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('opacity-0');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.add('opacity-0'), 2200);
+    }
+
+    function applyTheme() {
+      document.body.classList.toggle('dark-kitchen', state.darkMode);
+    }
+
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+      ['recipe', 'quick', 'guide'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tabName);
+      });
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        const isActive = btn.dataset.tab === tabName;
+        btn.classList.toggle('text-amber-600', isActive);
+        btn.classList.toggle('font-semibold', isActive);
+        btn.classList.toggle('text-stone-500', !isActive);
+        btn.classList.toggle('font-medium', !isActive);
+      });
+    }
+
+    function runConversion() {
+      const text = document.getElementById('recipeInput').value;
+      state.items = parseRecipeText(text);
+      renderRecipeList();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      applyTheme();
+      populateQuickIngredients();
+      renderReferenceGrid();
+      renderCustomOverridesList();
+      updateScaleButtons();
+
+      // Register PWA Service Worker for offline use & Android Share Target
+      if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      }
+
+      // Check URL query params from Android Share Sheet (?text=...&title=...&url=...)
+      const params = new URLSearchParams(window.location.search);
+      const sharedText = params.get('text') || params.get('recipe') || params.get('ingredients');
+      const sharedTitle = params.get('title');
+      const sharedUrl = params.get('url');
+      if (sharedText) {
+        const combined = sharedTitle && !sharedText.includes(sharedTitle)
+          ? sharedTitle + '\n' + sharedText
+          : sharedText;
+        document.getElementById('recipeInput').value = combined;
+        runConversion();
+        showToast('Loaded shared recipe!');
+      } else if (sharedUrl) {
+        document.getElementById('recipeInput').value = (sharedTitle ? sharedTitle + '\n' : '') + 'Paste the ingredients from: ' + sharedUrl;
+        runConversion();
+        showToast('Shared link received — paste ingredients');
+      } else {
+        document.getElementById('recipeInput').value = SAMPLE_RECIPES.cookies;
+        runConversion();
+      }
+
+      // Navigation tabs
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+      });
+
+      // Convert button
+      document.getElementById('convertRecipeBtn').addEventListener('click', () => {
+        runConversion();
+        showToast('Converted to grams');
+      });
+
+      // Sample buttons
+      document.querySelectorAll('.sample-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('recipeInput').value = SAMPLE_RECIPES[btn.dataset.sample];
+          runConversion();
+        });
+      });
+
+      // Clear & Paste
+      document.getElementById('clearInputBtn').addEventListener('click', () => {
+        document.getElementById('recipeInput').value = '';
+        state.items = [];
+        renderRecipeList();
+      });
+
+      document.getElementById('pasteClipboardBtn').addEventListener('click', async () => {
+        try {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            document.getElementById('recipeInput').value = text;
+            runConversion();
+            showToast('Pasted & converted!');
+          } else {
+            showToast('Clipboard is empty');
+          }
+        } catch (e) {
+          document.getElementById('recipeInput').focus();
+          showToast('Tap inside the box and paste');
+        }
+      });
+
+      // Scale buttons & custom input
+      document.querySelectorAll('.scale-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.scale = parseFloat(btn.dataset.scale);
+          document.getElementById('customScaleInput').value = state.scale;
+          updateScaleButtons();
+          renderRecipeList();
+        });
+      });
+
+      document.getElementById('customScaleInput').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (!isNaN(val) && val > 0) {
+          state.scale = val;
+          updateScaleButtons();
+          renderRecipeList();
+        }
+      });
+
+      // Unit toggle
+      document.getElementById('unitToggleBtn').addEventListener('click', () => {
+        state.showOz = !state.showOz;
+        document.getElementById('unitToggleLabel').textContent = state.showOz ? 'g + oz' : 'g only';
+        renderRecipeList();
+      });
+
+      // Reset checks
+      document.getElementById('resetChecksBtn').addEventListener('click', () => {
+        state.items.forEach(i => { if (!i.isHeader) i.checked = false; });
+        renderRecipeList();
+      });
+
+      // Copy converted recipe
+      document.getElementById('copyAllBtn').addEventListener('click', async () => {
+        const lines = state.items.map(i => {
+          if (i.isHeader) return `\n${i.raw}:`;
+          const g = i.baseGrams != null ? formatGrams(i.baseGrams * state.scale) : 'unconverted';
+          return `- ${g} — ${i.raw}`;
+        }).join('\n').trim();
+
+        try {
+          await navigator.clipboard.writeText(lines);
+          showToast('Copied gram recipe!');
+        } catch (e) {
+          const ta = document.createElement('textarea');
+          ta.value = lines;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          showToast('Copied gram recipe!');
+        }
+      });
+
+      // Quick converter events
+      document.getElementById('quickAmount').addEventListener('input', updateQuickResult);
+      document.getElementById('quickUnit').addEventListener('change', updateQuickResult);
+      document.getElementById('quickIngredient').addEventListener('change', updateQuickResult);
+      document.getElementById('quickSearch').addEventListener('input', (e) => populateQuickIngredients(e.target.value));
+
+      document.getElementById('addToListBtn').addEventListener('click', () => {
+        const amt = document.getElementById('quickAmount').value.trim() || '1';
+        const unit = document.getElementById('quickUnit').value;
+        const ingId = document.getElementById('quickIngredient').value;
+        const ing = INGREDIENTS_DB.find(i => i.id === ingId);
+        const line = `${amt} ${unit} ${ing.name.toLowerCase()}`;
+        const inputEl = document.getElementById('recipeInput');
+        inputEl.value = (inputEl.value.trim() ? inputEl.value.trim() + '\n' : '') + line;
+        runConversion();
+        switchTab('recipe');
+        showToast('Added to recipe');
+      });
+
+      // Theme toggle
+      document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        state.darkMode = !state.darkMode;
+        applyTheme();
+        try { localStorage.setItem('gramscale_dark', String(state.darkMode)); } catch (e) {}
+      });
+
+      // Wake lock toggle
+      document.getElementById('wakeLockBtn').addEventListener('click', async () => {
+        const label = document.getElementById('wakeLockLabel');
+        if (state.wakeLock) {
+          try { await state.wakeLock.release(); } catch (e) {}
+          state.wakeLock = null;
+          label.textContent = 'Awake: Off';
+          showToast('Screen sleep restored');
+          return;
+        }
+        if ('wakeLock' in navigator) {
+          try {
+            state.wakeLock = await navigator.wakeLock.request('screen');
+            label.textContent = 'Awake: On';
+            showToast('Screen will stay awake');
+          } catch (e) {
+            showToast('Wake Lock unavailable here');
+          }
+        } else {
+          showToast('Wake Lock not supported in this browser');
+        }
+      });
+
+      // Modal events
+      document.getElementById('closeModalBtn').addEventListener('click', closeEditModal);
+      document.getElementById('modalCancelBtn').addEventListener('click', closeEditModal);
+      document.getElementById('modalSaveBtn').addEventListener('click', saveEditModal);
+      document.getElementById('modalDbSelect').addEventListener('change', (e) => {
+        const ing = INGREDIENTS_DB.find(i => i.id === e.target.value);
+        const item = state.items.find(i => i.id === state.editingItemId);
+        if (ing && item) {
+          const g = computeGrams(item.amount || 1, item.unit || 'cup', ing);
+          if (g != null) document.getElementById('modalCustomGrams').value = Math.round(g * 10) / 10;
+        }
+      });
+
+      // Test share param button
+      document.getElementById('testShareParamBtn').addEventListener('click', () => {
+        document.getElementById('recipeInput').value = SAMPLE_RECIPES.sourdough;
+        runConversion();
+        switchTab('recipe');
+        showToast('Simulated shared recipe!');
+      });
+
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
